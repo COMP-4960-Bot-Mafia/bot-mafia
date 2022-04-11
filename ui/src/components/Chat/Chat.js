@@ -19,7 +19,8 @@ const Chat = ({ location }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [flag, setFlag] = useState(0);
-  const ENDPOINT = "https://localhost:3000/";
+  const [canPlay, setCanPlay] = useState(1);
+  const ENDPOINT = "http://localhost:5000/";
 
   useEffect(() => {
     const { name, room } = queryString.parse(location.search);
@@ -45,10 +46,15 @@ const Chat = ({ location }) => {
     socket.on("roomData", ({ users }) => {
       setUsers(users);
     });
+
+    socket.on("spectate", (user) => {
+      setCanPlay(0);
+    });
   }, []);
 
   const sendMessage = (event) => {
     event.preventDefault();
+    console.log(message);
     if (message) {
       socket.emit("sendMessage", message, () => setMessage(""));
     }
@@ -63,11 +69,15 @@ const Chat = ({ location }) => {
       <div className="container">
         <InfoBar room={room} />
         <Messages messages={messages} name={name} />
-        <Input
-          message={message}
-          setMessage={setMessage}
-          sendMessage={sendMessage}
-        />
+        {canPlay ? (
+          <Input
+            message={message}
+            setMessage={setMessage}
+            sendMessage={sendMessage}
+          />
+        ) : (
+          <div>You are spectating</div>
+        )}
       </div>
       <TextContainer users={users} />
     </div>
